@@ -1,16 +1,17 @@
+/* eslint-disable import-helpers/order-imports */
 import express from "express";
+import swaggerUI from "swagger-ui-express";
+
+import swaggerFile from "./swagger.json";
+
+import { router } from "./routes";
 
 const app = express();
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  return res.json({ message: "Hello world" });
-});
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerFile));
 
-app.post("/coursers", (req, res) => {
-  const { name } = req.body;
-  return res.json({ name });
-});
+app.use(router);
 
 app.listen(3333, () => console.log("Server is runner"));
