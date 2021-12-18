@@ -16,6 +16,7 @@ const upload = multer({
 });
 
 categoriesRoutes.post("/", (req, res) =>{
+    console.log("rodando REALOAD")
     return createCategoryController.handle(req, res);
 });
 
@@ -24,6 +25,7 @@ categoriesRoutes.get("/", (request, response) =>{
 })
 
 categoriesRoutes.post("/import", upload.single("file"), (request, response) => {
+  
   return importCategoryController.handle( request, response);
 });
 
