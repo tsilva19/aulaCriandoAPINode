@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
+import { container } from "tsyringe";
 
 import { ImportCategoryUseCase } from "./ImportCategoryUseCase";
 
 class ImportCategoryController {
-  constructor(private importCategoryUseCase: ImportCategoryUseCase) {}
-  handle(request: Request, response: Response): Response {
+  async handle(request: Request, response: Response): Promise<Response> {
     const { file }: any = request;
+    console.log("teste-----");
+    console.log(file);
+    const importCategoryUseCase = container.resolve(ImportCategoryUseCase);
 
-    this.importCategoryUseCase.execute(file);
+    await importCategoryUseCase.execute(file);
 
     return response.send();
   }

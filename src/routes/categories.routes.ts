@@ -2,11 +2,10 @@
 import { Router } from "express";
 import multer from "multer";
 
-import { createCategoryController } from "../modules/cars/useCases/createCategory";
-import { listCategoryController } from "../modules/cars/useCases/ListCategories";
+import { CreateCategoryController } from "../modules/cars/useCases/createCategory/CreateCategoryController";
+import { ImportCategoryController } from "../modules/cars/useCases/importCategories/ImportCategoryController";
+import { ListCategoryController } from "../modules/cars/useCases/ListCategories/ListCategoryController";
 // import { PostgresCategoriesRepository } from "../repositories/PostgresCategoriesRepository";
-import { importCategoryController } from "../modules/cars/useCases/importCategories";
-
 
 const categoriesRoutes = Router();
 
@@ -15,18 +14,18 @@ const upload = multer({
 
 });
 
-categoriesRoutes.post("/", (req, res) =>{
-    console.log("rodando REALOAD")
-    return createCategoryController.handle(req, res);
-});
+const createCategoryController = new CreateCategoryController();
+const importCategoryController = new ImportCategoryController();
+const listCategoryController = new ListCategoryController();
 
-categoriesRoutes.get("/", (request, response) =>{
-  return listCategoryController.handle(request, response)
-})
+categoriesRoutes.post("/", createCategoryController.handle);
 
-categoriesRoutes.post("/import", upload.single("file"), (request, response) => {
-  
-  return importCategoryController.handle( request, response);
-});
+categoriesRoutes.get("/", listCategoryController.handle);
+
+categoriesRoutes.post(
+  "/import", 
+  upload.single("file"),  
+  importCategoryController.handle
+);
 
 export { categoriesRoutes };
