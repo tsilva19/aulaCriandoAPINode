@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import csvParse from "csv-parser";
 import fs from "fs";
+import { inject, injectable } from "tsyringe";
 
 import { ICategoriesRepository } from "../../repositories/ICategoriesRepository";
 
@@ -10,53 +9,43 @@ interface IImportCategory {
   description: string;
 }
 
+@injectable()
 class ImportCategoryUseCase {
-  constructor(private categoriesRepository: ICategoriesRepository) {}
+  constructor(
+    @inject("CategoriesRepository")
+    private categoriesRepository: ICategoriesRepository
+  ) {}
 
   loadCategories(file: Express.Multer.File): Promise<IImportCategory[]> {
     return new Promise((resolve, reject) => {
-      const stream = fs.createReadStream(file.path);
       const categories: IImportCategory[] = [];
-      const parseFile = csvParse();
 
-      stream.pipe(parseFile);
-      // console.log(stream.pipe(parseFile));
-
-      parseFile
-        .on("data", async (line) => {
-          console.log(line);
-          const [name, description] = line;
-          categories.push({
-            name,
-            description,
-          });
-        })
+      fs.createReadStream(file.path)
+        .pipe(csvParse(["name", "description"]))
+        .on("data", (data) => categories.push(data))
         .on("end", () => {
+          console.log(categories);
           fs.promises.unlink(file.path);
           resolve(categories);
         })
-        .on("error", (err) => {
-          reject(err);
+        .on("error", () => {
+          reject(Error);
         });
     });
   }
 
   async execute(file: Express.Multer.File): Promise<void> {
     const categories = await this.loadCategories(file);
-    // console.log(categories);
 
     categories.map(async (category) => {
       const { name, description } = category;
-      const existCategory = this.categoriesRepository.findByName(name);
+
+      const existCategory = await this.categoriesRepository.findByName(name);
 
       if (!existCategory) {
-        this.categoriesRepository.create({
-          name,
-          description,
-        });
+        await this.categoriesRepository.create({ name, description });
       }
     });
   }
 }
-
 export { ImportCategoryUseCase };
